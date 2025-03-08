@@ -1,0 +1,78 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import * as CANNON from 'cannon-es';
+
+// Khởi tạo Scene, Camera và Renderer
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Thêm ánh sáng
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(5, 10, 5).normalize();
+scene.add(light);
+
+// Tạo mặt đất
+const groundGeometry = new THREE.PlaneGeometry(50, 50);
+const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 });
+const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+// Tạo nhân vật
+const playerGeometry = new THREE.BoxGeometry(1, 2, 1);
+const playerMaterial = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+const player = new THREE.Mesh(playerGeometry, playerMaterial);
+player.position.set(0, 1, 0);
+scene.add(player);
+
+// Tạo con chó
+const dogGeometry = new THREE.BoxGeometry(1, 1, 2);
+const dogMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+const dog = new THREE.Mesh(dogGeometry, dogMaterial);
+dog.position.set(-5, 0.5, -5);
+scene.add(dog);
+
+// Điều khiển camera
+const controls = new OrbitControls(camera, renderer.domElement);
+camera.position.set(0, 5, 10);
+controls.update();
+
+// Biến di chuyển
+let playerSpeed = 0.1;
+document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+        case 'ArrowUp':
+            player.position.z -= playerSpeed;
+            break;
+        case 'ArrowDown':
+            player.position.z += playerSpeed;
+            break;
+        case 'ArrowLeft':
+            player.position.x -= playerSpeed;
+            break;
+        case 'ArrowRight':
+            player.position.x += playerSpeed;
+            break;
+    }
+});
+
+// Vòng lặp game
+function animate() {
+    requestAnimationFrame(animate);
+    
+    // Con chó đuổi theo nhân vật
+    let dx = player.position.x - dog.position.x;
+    let dz = player.position.z - dog.position.z;
+    let distance = Math.sqrt(dx * dx + dz * dz);
+    if (distance > 0.5) {
+        dog.position.x += dx * 0.02;
+        dog.position.z += dz * 0.02;
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+}
+animate();
